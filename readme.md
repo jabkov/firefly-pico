@@ -4,6 +4,10 @@
   <img src="docs/images/logo2.png" height="100">
 </div>
 
+<p align="center">
+  Fork of <a href="https://github.com/cioraneanu/firefly-pico">cioraneanu/firefly-pico</a>
+</p>
+
 
 <p align="center">
   <i>A delightful Firefly III companion web app for effortless transaction tracking</i>
