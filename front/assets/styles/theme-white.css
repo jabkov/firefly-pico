@@ -1094,28 +1094,20 @@ svg {
     pointer-events: none;
 }
 
-.search-total-toggle {
-    border-radius: 8px !important;
-}
-
-.search-total-row {
+.search-total {
     display: flex;
     align-items: center;
-    gap: 10px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px solid var(--van-border-color);
+    gap: 6px;
 }
 
-.search-total-row .search-total-amount {
+.search-total .search-total-amount {
     font-size: 13px;
     font-weight: 500;
 }
 
-.search-total-compute-button {
-    background: transparent !important;
-    border: 1px solid var(--van-text-color) !important;
-    border-radius: 8px !important;
+.search-total .search-total-label {
+    font-size: 13px;
+    color: var(--van-text-color-2);
 }
 
 .app-button-small {

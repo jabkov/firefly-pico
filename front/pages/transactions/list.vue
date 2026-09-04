@@ -15,9 +15,12 @@
     <div v-if="filtersDisplayList.length > 0" class="applied-filters-container">
       <div class="flex-center-vertical">
         <div class="title flex-1">{{ $t('filters.applied_filters') }}</div>
-        <van-button size="small" class="search-total-toggle" @click="onToggleSearchTotal">
-          <icon-settings :size="14" :stroke="1.9" />
-        </van-button>
+        <van-loading v-if="isComputingSearchTotal" size="16" />
+        <div v-else-if="searchTotalFormatted" class="search-total">
+          <span class="search-total-label">{{ $t('filters.total') }}</span>
+          <span class="search-total-amount">{{ searchTotalFormatted }}</span>
+          <currency-dropdown v-if="hasMultipleTotalCurrencies" v-model="searchTotalCurrency" />
+        </div>
       </div>
 
       <div class="display-flex flex-wrap gap-1">
@@ -27,15 +30,6 @@
         <div class="cursor-pointer" style="z-index: 2" @click="onClearFilters">
           <icon-square-rounded-x :size="26" :stroke="1.5" />
         </div>
-      </div>
-
-      <div v-if="showSearchTotal" class="search-total-row">
-        <van-button size="mini" class="search-total-compute-button" :loading="isComputingSearchTotal" @click="onComputeSearchTotal">
-          {{ $t('filters.compute_total') }}
-        </van-button>
-        <div class="flex-1"/>
-        <div class="search-total-amount">{{ searchTotalFormatted }}</div>
-        <currency-dropdown v-model="searchTotalCurrency" />
       </div>
     </div>
 
@@ -75,7 +69,7 @@ import Currency from '~/models/Currency.js'
 import { convertCurrency } from '~/utils/CurrencyUtils.js'
 import { animateSwipeList } from '~/utils/AnimationUtils.js'
 import TransactionFilterUtils from '~/utils/TransactionFilterUtils.js'
-import { IconChevronDown, IconChevronUp, IconSquareRoundedX, IconSettings } from '@tabler/icons-vue'
+import { IconChevronDown, IconChevronUp, IconSquareRoundedX } from '@tabler/icons-vue'
 import TablerIconConstants from '~/constants/TablerIconConstants.js'
 import { filterBagHasValues, getFiltersFromURL, saveToUrl } from '~/utils/FilterUtils.js'
 import { useListFilters } from '~/composables/useListFilters.js'
@@ -128,6 +122,7 @@ watch(filtersBackendList, (newValue, oldValue) => {
   }
   searchTotal.value = null
   onRefresh()
+  onComputeSearchTotal()
 })
 
 watch(filters, (newValue, oldValue) => {
@@ -145,17 +140,11 @@ const { t } = useI18n()
 
 const currencyStore = useCurrencyStore()
 
-const showSearchTotal = ref(false)
 const searchTotal = ref(null)
 const searchTotalCurrency = ref(null)
 const isComputingSearchTotal = ref(false)
 
-const onToggleSearchTotal = () => {
-  showSearchTotal.value = !showSearchTotal.value
-  if (showSearchTotal.value && !get(currencyStore.exchangeRates, 'rates')) {
-    currencyStore.fetchExchangeRate()
-  }
-}
+const hasMultipleTotalCurrencies = computed(() => (get(searchTotal.value, 'totals') ?? []).length > 1)
 
 const searchTotalFormatted = computed(() => {
   const totals = get(searchTotal.value, 'totals') ?? []
@@ -174,8 +163,11 @@ const searchTotalFormatted = computed(() => {
 })
 
 const onComputeSearchTotal = async () => {
-  if (isComputingSearchTotal.value) {
+  if (isComputingSearchTotal.value || filtersBackendList.value.length === 0) {
     return
+  }
+  if (!get(currencyStore.exchangeRates, 'rates')) {
+    currencyStore.fetchExchangeRate()
   }
   isComputingSearchTotal.value = true
   const searchFilters = [{ field: 'query', value: filtersBackendList.value.join(' ') }]
