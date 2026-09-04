@@ -5,15 +5,14 @@
           <div class="flex-1 text-center font-weight-600 text-size-18">{{ $t('filters.transaction_filters') }}</div>
         </div>
 
-        <div ref="popupContentRef" class="flex-1" style="padding-bottom: 70px; overflow-y: auto">
+        <div ref="popupContentRef" class="flex-1" style="overflow-y: auto">
           <transaction-filters-content v-model="localModelValue" :show-date="showDate" :show-type="showType" />
         </div>
 
-        <app-button-form-save :label="$t('filters.apply_filters')" bottom=" - var(--van-tabbar-height) + 20px">
-          <template #left>
-            <van-button v-if="isFiltered" round @click="onClearFilters">{{ $t('filters.clear') }}</van-button>
-          </template>
-        </app-button-form-save>
+        <div class="flex-center-vertical gap-2 p-3">
+          <van-button v-if="isFiltered" round @click="onClearFilters">{{ $t('filters.clear') }}</van-button>
+          <van-button round type="primary" native-type="submit" class="flex-1 cursor-pointer">{{ $t('filters.apply_filters') }}</van-button>
+        </div>
       </van-form>
   </app-popup>
 </template>
