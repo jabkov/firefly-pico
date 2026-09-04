@@ -5,7 +5,7 @@
           <div class="flex-1 text-center font-weight-600 text-size-18">{{ $t('filters.transaction_filters') }}</div>
         </div>
 
-        <div ref="popupContentRef" class="flex-1 overflow-hidden" style="padding-bottom: 70px">
+        <div ref="popupContentRef" class="flex-1" style="padding-bottom: 70px; overflow-y: auto">
           <transaction-filters-content v-model="localModelValue" :show-date="showDate" :show-type="showType" />
         </div>
 
