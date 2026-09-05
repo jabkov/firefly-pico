@@ -88,6 +88,8 @@ export default defineNuxtConfig({
       title: 'Pico',
       charset: 'utf-8',
       viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
+      link: [{ rel: 'manifest', href: '/manifest.webmanifest' }],
+      meta: [{ name: 'theme-color', content: '#1c1c1e' }],
     },
   },
   pwa: {
