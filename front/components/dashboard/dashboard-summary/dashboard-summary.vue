@@ -32,8 +32,8 @@
       <dashboard-summary-card :icon="TablerIconConstants.account" :title="$t('dashboard.transactions_summary.days_remaining')" :subtitle="remainingDays" />
     </van-grid>
 
-    <div class="van-cell-group-title">{{ $t('dashboard.transactions_summary.savings_summary') }}:</div>
-    <van-grid :column-num="3" @click="onNavigateToTransactionSavings">
+    <div v-if="hasSavingAccounts" class="van-cell-group-title">{{ $t('dashboard.transactions_summary.savings_summary') }}:</div>
+    <van-grid v-if="hasSavingAccounts" :column-num="3" @click="onNavigateToTransactionSavings">
       <dashboard-summary-card :icon="TablerIconConstants.dashboardTransactionsCount" :title="$t('toolbar.transactions')" :subtitle="dashboardStore.transactionsListSavingsCount" subtitle-class="" />
       <dashboard-summary-card :icon="TablerIconConstants.dashboardCoin" :title="$t('amount')" :subtitle="transactionsListSavingsAmount" :subtitle-class="savingsAmountClass" />
       <dashboard-summary-card :icon="TablerIconConstants.dashboardSavingsPercent" :title="$t('percentage')" :subtitle="savingsPercentFormatted" subtitle-class="text-primary" />
@@ -45,11 +45,16 @@ import TablerIconConstants from '~/constants/TablerIconConstants.js'
 import { addMonths, differenceInDays, startOfDay, subDays, subMonths } from 'date-fns'
 import RouteConstants from '~/constants/RouteConstants.js'
 import Transaction from '~/models/Transaction.js'
+import Account from '~/models/Account.js'
 
 import { useDashboardStore } from '~/stores/dashboardStore'
+import { useAccountStore } from '~/stores/accountStore'
 
 const profileStore = useProfileStore()
 const dashboardStore = useDashboardStore()
+const accountStore = useAccountStore()
+
+const hasSavingAccounts = computed(() => accountStore.accountList.some((item) => item?.attributes?.account_role?.fireflyCode === Account.roleAssets.saving.fireflyCode))
 
 const startDate = computed(() => {
   const dateCurrentMonth = startOfDay(new Date()).setDate(profileStore.dashboard.firstDayOfMonth)
