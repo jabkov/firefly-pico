@@ -12,9 +12,8 @@ import { useAccountStore } from '~/stores/accountStore'
 import { useCategoryStore } from '~/stores/categoryStore'
 import { useTagStore } from '~/stores/tagStore'
 
-const transactionPathKey = 'attributes.transactions.0'
-
-export const useTransactionForm = ({ item, itemId, profileStore = useProfileStore() }) => {
+export const useTransactionForm = ({ item, itemId, profileStore = useProfileStore(), splitIndex = 0 }) => {
+  const transactionPathKey = `attributes.transactions.${splitIndex}`
   const accountStore = useAccountStore()
   const categoryStore = useCategoryStore()
   const tagStore = useTagStore()
@@ -46,6 +45,10 @@ export const useTransactionForm = ({ item, itemId, profileStore = useProfileStor
 
   const transactions = computed(() => get(item.value, 'attributes.transactions', []))
   const isSplitTransaction = computed(() => transactions.value.length > 1)
+  const groupTitle = computed({
+    get: () => get(item.value, 'attributes.group_title'),
+    set: (value) => (item.value.attributes.group_title = value),
+  })
   const accountSourceAllowedTypes = computed(() => Account.getAccountTypesForTransactionTypeSource(type.value))
   const accountDestinationAllowedTypes = computed(() => Account.getAccountTypesForTransactionTypeDestination(type.value))
   const sourceCurrency = computed(() => Account.getCurrency(accountSource.value))
@@ -130,6 +133,13 @@ export const useTransactionForm = ({ item, itemId, profileStore = useProfileStor
       return
     }
     attemptAccountsFix()
+  })
+
+  watch(type, (newValue) => {
+    if (splitIndex !== 0) {
+      return
+    }
+    transactions.value.slice(1).forEach((split) => (split.type = newValue))
   })
 
   watch(description, (newValue) => {
@@ -231,6 +241,29 @@ export const useTransactionForm = ({ item, itemId, profileStore = useProfileStor
     attemptAccountsFix()
   }
 
+  const onAddSplit = () => {
+    const firstSplit = transactions.value[0]
+    if (!groupTitle.value) {
+      groupTitle.value = firstSplit.description
+    }
+    transactions.value.push({
+      amount: '',
+      date: firstSplit.date,
+      tags: [],
+      description: '',
+      notes: '',
+      accountSource: firstSplit.accountSource,
+      accountDestination: firstSplit.accountDestination,
+      type: firstSplit.type,
+      category: null,
+      currencyForeign: null,
+    })
+  }
+
+  const onRemoveSplit = (index) => {
+    transactions.value.splice(index, 1)
+  }
+
   const onSubDay = () => {
     date.value = addDays(date.value, -1)
   }
@@ -310,7 +343,11 @@ export const useTransactionForm = ({ item, itemId, profileStore = useProfileStor
     category,
     type,
     currencyForeign,
+    transactions,
     isSplitTransaction,
+    groupTitle,
+    onAddSplit,
+    onRemoveSplit,
     accountSourceAllowedTypes,
     accountDestinationAllowedTypes,
     sourceCurrency,

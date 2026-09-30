@@ -13,10 +13,10 @@
     <transaction-form ref="transactionFormRef" v-model="item" :form-name="formName" @submit="saveItem" @failed="onValidationError">
       <template #actions="{ isSplitTransaction }">
         <div style="margin: 16px; position: relative">
-          <app-button-form-delete v-if="itemId && !isSplitTransaction" class="mt-10" @click="onDelete" />
+          <app-button-form-delete v-if="itemId" class="mt-10" @click="onDelete" />
 
           <div class="display-flex gap-1">
-            <van-button v-if="itemId && !isSplitTransaction" block type="default" class="mt-2 flex-1 cursor-pointer" @click="onCreateClone">
+            <van-button v-if="itemId" block type="default" class="mt-2 flex-1 cursor-pointer" @click="onCreateClone">
               <app-icon :icon="TablerIconConstants.clone" />
               {{ $t('clone') }}
             </van-button>
@@ -28,7 +28,7 @@
           </div>
         </div>
 
-        <app-button-form-save v-if="!isSplitTransaction" />
+        <app-button-form-save />
       </template>
     </transaction-form>
 

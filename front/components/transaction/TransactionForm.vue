@@ -1,11 +1,23 @@
 <template>
   <transaction-type-tabs v-model="type" class="mx-3 mt-1 mb-1" />
 
-  <van-form ref="formRef" :disabled="isFormDisabled" :name="props.formName" class="transaction-form-group" @submit="emit('submit')" @failed="emit('failed', $event)">
+  <van-form ref="formRef" :disabled="props.disabled" :name="props.formName" class="transaction-form-group" @submit="emit('submit')" @failed="emit('failed', $event)">
+    <van-cell-group v-if="isSplitTransaction" inset class="mb-3">
+      <app-field
+        v-model="groupTitle"
+        :label="$t('transaction.group_title')"
+        name="group_title"
+        type="textarea"
+        rows="1"
+        autosize
+        :icon="TablerIconConstants.fieldText1"
+        :rules="[rule.required()]"
+        required
+      />
+    </van-cell-group>
+
     <van-cell-group inset class="dynamic-masonry display-flex-column">
-      <div v-if="isSplitTransaction" class="display-flex ml-3 mt-3">
-        <transaction-split-badge />
-      </div>
+      <transaction-split-header v-if="isSplitTransaction" :index="0" :total="transactions.length" style="order: -1" @remove="onRemoveSplit(0)" />
 
       <transaction-amount-field
         v-model:amount="amount"
@@ -15,7 +27,6 @@
         :is-foreign-amount-visible="isForeignAmountVisible"
         name="amount"
         :style="getStyleForField(transactionFormField.amount)"
-        :disabled="isSplitTransaction"
         :is-amount-required="true"
       />
 
@@ -65,7 +76,7 @@
       <div :style="getStyleForField(transactionFormField.date)">
         <app-date-time-grid v-model="date" name="date" :rules="[rule.required()]" required />
 
-        <div v-if="!isSplitTransaction" class="px-3 flex-center-vertical gap-1">
+        <div class="px-3 flex-center-vertical gap-1">
           <van-button size="small" class="cursor-pointer" @click="onSubDay">{{ $t('sub_day') }}</van-button>
           <van-button size="small" class="cursor-pointer" @click="onToday">{{ $t('today') }}</van-button>
           <van-button size="small" class="cursor-pointer" @click="onAddDay">{{ $t('add_day') }}</van-button>
@@ -90,6 +101,12 @@
       <transaction-attachments-list :transaction="item" :style="getStyleForField(transactionFormField.attachments)" />
     </van-cell-group>
 
+    <transaction-split-form v-for="(split, index) in transactions.slice(1)" :key="index + 1" v-model="item" :split-index="index + 1" />
+
+    <div class="mx-3 mt-3">
+      <van-button block plain hairline icon="plus" class="cursor-pointer" @click="onAddSplit">{{ $t('transaction.add_split') }}</van-button>
+    </div>
+
     <slot name="actions" :is-split-transaction="isSplitTransaction" :is-type-transfer="isTypeTransfer" />
   </van-form>
 </template>
@@ -98,7 +115,8 @@
 import RouteConstants from '~/constants/RouteConstants'
 import Transaction from '~/models/Transaction'
 import TablerIconConstants from '~/constants/TablerIconConstants'
-import TransactionSplitBadge from '~/components/transaction/transaction-split-badge.vue'
+import TransactionSplitHeader from '~/components/transaction/transaction-split-header.vue'
+import TransactionSplitForm from '~/components/transaction/transaction-split-form.vue'
 import TransactionAttachmentsList from '~/components/transaction/transaction-attachements/transaction-attachments-list.vue'
 import TransactionNoteField from '~/components/transaction/transaction-note-field.vue'
 import { transactionFormField, transactionExtraDateFieldList } from '~/constants/TransactionConstants.js'
@@ -142,7 +160,11 @@ const {
   category,
   type,
   currencyForeign,
+  transactions,
   isSplitTransaction,
+  groupTitle,
+  onAddSplit,
+  onRemoveSplit,
   accountSourceAllowedTypes,
   accountDestinationAllowedTypes,
   sourceCurrency,
@@ -157,8 +179,6 @@ const {
   accountDestinationBinding,
   showSourceAccountSuggestion,
 } = useTransactionForm({ item, itemId, profileStore })
-
-const isFormDisabled = computed(() => props.disabled || isSplitTransaction.value)
 
 const validate = async () => {
   return formRef.value?.validate()

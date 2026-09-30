@@ -81,6 +81,9 @@
   "transaction": {
     "title_list": "Transactions list",
     "split_transaction": "Split transaction",
+    "group_title": "Split description",
+    "split_part": "Part {index} of {total}",
+    "add_split": "Add split",
     "assistant": "Assistant",
     "assistant_format": "Format = [template / tag?] [amount?] [description?] [±Nd?]",
     "assistant_ramble_title": "Dictate transactions",
