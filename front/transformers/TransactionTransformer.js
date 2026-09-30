@@ -65,8 +65,9 @@ export default class TransactionTransformer extends ApiTransformer {
   static transformToApi(item) {
     const profileStore = useProfileStore()
     const id = get(item, 'data.id')
+    const splits = item.attributes.transactions
 
-    const transactions = item.attributes.transactions.map((transaction) => {
+    const transactions = splits.map((transaction) => {
       const accountSource = get(transaction, 'accountSource')
       const accountDestination = get(transaction, 'accountDestination')
 
@@ -80,8 +81,12 @@ export default class TransactionTransformer extends ApiTransformer {
         destination_name: Account.getDisplayName(accountDestination),
         category_id: get(transaction, 'category.id') ?? null,
         budget_id: get(transaction, 'budget.id') ?? 0,
-        date: DateUtils.dateToString(transaction.date, DateUtils.FORMAT_ENGLISH_DATE_HOUR_MINUTE),
+        date: DateUtils.dateToString(splits[0].date, DateUtils.FORMAT_ENGLISH_DATE_HOUR_MINUTE),
         type: Transaction.getTransactionTypeForAccounts({ source: accountSource, destination: accountDestination }).fireflyCode,
+      }
+
+      if (item.id && transaction.transaction_journal_id) {
+        newItem.transaction_journal_id = transaction.transaction_journal_id
       }
 
       // Send null when unset so clearing an extra date in the form also clears it in Firefly
@@ -113,6 +118,7 @@ export default class TransactionTransformer extends ApiTransformer {
       id,
       apply_rules: true,
       fire_webhooks: true,
+      group_title: splits.length > 1 ? item.attributes.group_title : undefined,
       transactions,
     }
   }
